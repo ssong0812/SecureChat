@@ -1,15 +1,22 @@
 import asyncio
-from websockets.asyncio.server import serve
-# Sample echo websocket server from python websockets documentation
+import websockets
 
-async def echo(websocket):
+# Initialize set of connections
+CONNECTIONS = set()
+
+async def securechat(websocket):
+    # Add clients to set of connections
+    if websocket not in CONNECTIONS:
+        CONNECTIONS.add(websocket)
+    # Broadcast messages to all clients
     async for message in websocket:
-        await websocket.send(message)
+        websockets.broadcast(CONNECTIONS,message)
 
 
 async def main():
-    async with serve(echo, "localhost", 7777) as server:
-        await server.serve_forever()
+    # Serve websocket server forever
+    async with websockets.serve(securechat, "localhost", 7777) as server:
+        await asyncio.Future()
 
 
 if __name__ == "__main__":
