@@ -1,5 +1,5 @@
 // Connect to websocket server
-const ws = new WebSocket("ws://localhost:7777");
+const ws = new WebSocket("wss://localhost:7777");
 
 ws.onopen = () => {
     console.log("Connected to SecureChat's server");
