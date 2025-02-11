@@ -5,9 +5,21 @@
 </head>
 <body>
     <h1>SecureChat Websocket</h1>
-    <div id="chatbox"></div>
-    <input type="text" id="message" placeholder="Type a message...">
-    <button onclick="sendMessage()">Send</button>
+
+    <!-- SecureChat Login Form-->
+    <div id="loginForm">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="loginUser()">Login</button>
+    </div>
+
+    <!-- SecureChat Chat Interface -->
+    <div id="chatInterface" style="display: none;">
+        <div id="chatbox"></div>
+        <input type="text" id="message" placeholder="Type a message...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
 
     <script src="chat.js"></script>
 </body>
