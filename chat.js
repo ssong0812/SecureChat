@@ -1,47 +1,58 @@
-// Establish a connection to SecureChat websocket
-const ws = new WebSocket("ws://localhost:7777");
+let sessionToken = null;
+let ws; // WebSocket instance
+let reconnectAttempts = 0;
+const maxReconnectAttempts = 5; // Prevent infinite reconnect loop
 
-// Store session token after login
-let sessionToken = null; 
+// Function to establish WebSocket connection
+function connectWebSocket() {
+    ws = new WebSocket("wss://localhost:7777"); // Secure WebSocket
 
-// Message on successful connection to server
-ws.onopen = () => {
-    console.log("Connected to SecureChat's server");
-};
+    ws.onopen = () => {
+        console.log("Connected to SecureChat's secure server");
+        reconnectAttempts = 0; // Reset attempts on successful connection
+    };
 
-// Event handler for incoming messages from the SecureChat server
-ws.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    
-    // Handles successful login
-    if (data.type === "login_success") {
-        sessionToken = data.token;
-        document.getElementById("loginForm").style.display = "none";
-        document.getElementById("chatInterface").style.display = "block";
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
 
-    // Handles failed login attempts
-    } else if (data.type === "login_failed") {
-        alert("Login failed! Check your username and password.");
+        if (data.type === "login_success") {
+            sessionToken = data.token;
+            document.getElementById("loginForm").style.display = "none";
+            document.getElementById("chatInterface").style.display = "block";
+        } else if (data.type === "login_failed") {
+            alert("Login failed! Check your username and password.");
+        } else if (data.type === "message") {
+            const chatbox = document.getElementById("chatbox");
+            const message = document.createElement("div");
+            message.textContent = data.content;
+            chatbox.appendChild(message);
+        } else if (data.type === "unauthorized") {
+            alert("You are not authorized to send messages.");
+        } else if (data.type === "rate_limited") {
+            alert("You're sending messages too fast! Please wait before sending another.");
+        }
+    };
 
-    // Displays messages sent in chatbox
-    } else if (data.type === "message") {
-        const chatbox = document.getElementById("chatbox");
-        const message = document.createElement("div");
-        message.textContent = data.content;
-        chatbox.appendChild(message);
+    ws.onclose = () => {
+        console.log("Disconnected from server. Attempting to reconnect...");
 
-    // Handles unauthorized message attemps
-    } else if (data.type === "unauthorized") {
-        alert("You are not authorized to send messages.");
-    }
-};
+        if (reconnectAttempts < maxReconnectAttempts) {
+            reconnectAttempts++;
+            setTimeout(() => {
+                console.log(`Reconnection attempt ${reconnectAttempts}`);
+                connectWebSocket();
+            }, 3000); // Retry connection after 3 seconds
+        } else {
+            console.log("Max reconnection attempts reached. Please refresh manually.");
+        }
+    };
+}
 
-// Function for user login handling
+// Function to handle user login
 function loginUser() {
     const username = document.getElementById("username").value;
     const password = document.getElementById("password").value;
 
-    // Sends user login request to SecureChat server
     ws.send(JSON.stringify({
         type: "login",
         username: username,
@@ -49,19 +60,21 @@ function loginUser() {
     }));
 }
 
-// Function for message sending
+// Function to send chat messages
 function sendMessage() {
     const input = document.getElementById("message");
 
-    // Checks if user session is authenticated before sending message
     if (sessionToken) {
         ws.send(JSON.stringify({
             type: "message",
             token: sessionToken,
             message: input.value
         }));
-        input.value = ""; // Clears input field after sending message
+        input.value = "";
     } else {
         alert("Please log in first.");
     }
 }
+
+// Start WebSocket connection on page load
+connectWebSocket();
