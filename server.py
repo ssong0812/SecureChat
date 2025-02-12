@@ -28,14 +28,28 @@ RATE_LIMIT = defaultdict(list)
 MAX_MESSAGES = 5  # Maximum messages allowed in time window
 MESSAGE_WINDOW = 10  # Time window in seconds
 
+# Message storage for persistence
+MESSAGE_STORAGE = []
+
 async def securechat(websocket):
     """Handles WebSocket connections securely."""
     try:
         async for message in websocket:
             data = json.loads(message)
 
+            # User registration
+            if data["type"] == "register":
+                username = data["username"]
+                password = hashlib.sha256(data["password"].encode()).hexdigest()
+
+                if username in USERS:
+                    await websocket.send(json.dumps({"type": "register_failed", "message": "Username already exists."}))
+                else:
+                    USERS[username] = password
+                    await websocket.send(json.dumps({"type": "register_success", "message": "Registration successful. Please log in."}))
+
             # User login authentication
-            if data["type"] == "login":
+            elif data["type"] == "login":
                 username = data["username"]
                 password = hashlib.sha256(data["password"].encode()).hexdigest()
 
@@ -43,6 +57,9 @@ async def securechat(websocket):
                     session_token = secrets.token_hex(16)
                     SESSIONS[session_token] = username
                     await websocket.send(json.dumps({"type": "login_success", "token": session_token}))
+
+                    # Send chat history to the user upon login
+                    await websocket.send(json.dumps({"type": "chat_history", "messages": MESSAGE_STORAGE}))
                 else:
                     await websocket.send(json.dumps({"type": "login_failed"}))
 
@@ -64,10 +81,10 @@ async def securechat(websocket):
                             CONNECTIONS.add(websocket)
 
                         full_message = f"{sender}: {data['message']}"
+                        MESSAGE_STORAGE.append(full_message)  # Store message in history
                         websockets.broadcast(CONNECTIONS, json.dumps({"type": "message", "content": full_message}))
                     else:
-                        await websocket.send(json.dumps({"type": "rate_limited"}))  # Notify user of rate limit
-
+                        await websocket.send(json.dumps({"type": "rate_limited", "message": f"Rate limit exceeded. Please wait {MESSAGE_WINDOW} seconds."}))
                 else:
                     await websocket.send(json.dumps({"type": "unauthorized"}))
 
