@@ -9,7 +9,7 @@ from collections import defaultdict
 
 # Load SSL certificate and key
 SSL_CONTEXT = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-SSL_CONTEXT.load_cert_chain(certfile="cert.pem", keyfile="key.pem")
+SSL_CONTEXT.load_cert_chain(certfile="localhost.pem", keyfile="localhost-key.pem")
 
 # Temporary user credential storage (hashed passwords)
 USERS = {
