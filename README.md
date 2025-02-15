@@ -21,6 +21,12 @@ SecureChat will serve as a foundational product for SecureTech’s offerings. Th
 
 # Usage
 
+Ensure you have Python 3.8 or later installed on your system
+
+Additionally, install the python websockets library with the following command:
+
+      pip install websockets
+
 As SecureChat is in its first stage, the user must generate a self-signed certificate. To do so run the command:
 
       openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -nodes
