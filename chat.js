@@ -17,6 +17,8 @@ ws.onmessage = (event) => {
         sessionToken = data.token;
         document.getElementById("loginForm").style.display = "none";
         document.getElementById("chatInterface").style.display = "block";
+        document.getElementById("registrationForm").style.display = "none";
+        document.getElementById("chatInterface").style.display = "block";
 
     } else if (data.type === "login_failed") {
         alert("Login failed! Check your username and password.");
