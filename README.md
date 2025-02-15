@@ -23,10 +23,10 @@ SecureChat will serve as a foundational product for SecureTech’s offerings. Th
 
 As SecureChat is in its first stage, the user must generate a self-signed certificate. To do so run the command:
 
-  openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -nodes
+      openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -days 365 -nodes
 
 Next start the SecureChat server with the command:
 
-  python3 server.py
+      python3 server.py
 
 You can now open the client.html file on your browser.
